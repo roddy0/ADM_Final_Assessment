@@ -91,7 +91,6 @@ sum(seqtab.nochim)/sum(seqtab)
 ```{r}
 getN <- function(x) sum(getUniques(x))
 track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
-# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
 head(track)
@@ -99,3 +98,14 @@ head(track)
 ```{r}
 taxa <- assignTaxonomy(seqtab.nochim, "/home/rstudio/ADM_Final_Assessment/silva_nr99_v138.2_toSpecies_trainset.fa.gz?download=1", multithread=TRUE)
 ```
+
+```{r}
+taxa.print <- taxa
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+
+```{r}
+
+```
+
