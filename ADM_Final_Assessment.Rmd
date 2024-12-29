@@ -8,3 +8,7 @@ output: github_document
 library(dada2); packageVersion("dada2")
 ```
 
+```{r}
+metatable<-read.csv(file="Metatable.csv", sep=";")
+```
+
