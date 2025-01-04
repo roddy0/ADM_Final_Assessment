@@ -9,10 +9,6 @@ library(dada2); packageVersion("dada2")
 ```
 
 ```{r}
-metatable<-read.csv(file="Metatable.csv", sep=";")
-```
-
-```{r}
 path <- "/home/rstudio/ADM_Final_Assessment/sequences"
 list.files(path)
 
@@ -43,7 +39,7 @@ names(filtRs) <- sample.names
 ```
 
 ```{r}
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(280,180),
+out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(260,245),
               maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=FALSE)
 head(out)
@@ -105,6 +101,32 @@ rownames(taxa.print) <- NULL
 head(taxa.print)
 ```
 
+```{r}
+library(phyloseq); packageVersion("phyloseq")
+```
+```{r}
+library(Biostrings); packageVersion("Biostrings")
+```
+```{r}
+library(ggplot2); packageVersion("ggplot2")
+```
+```{r}
+theme_set(theme_bw())
+```
+
+
+```{r}
+samples.out<-rownames(seqtab.nochim)
+```
+
+```{r}
+head(metatable)
+```
+
+```{r}
+metadata<-read.csv(file="Metatable.csv", sep=";")
+all(samples.out %in% metadata$Run)
+```
 ```{r}
 
 ```
