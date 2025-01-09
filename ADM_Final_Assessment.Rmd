@@ -40,7 +40,7 @@ names(filtRs) <- sample.names
 
 ```{r}
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(260,245),
-              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
+              maxN=0, maxEE=c(3,5), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=FALSE)
 head(out)
 ```
@@ -92,7 +92,7 @@ rownames(track) <- sample.names
 head(track)
 ```
 ```{r}
-taxa <- assignTaxonomy(seqtab.nochim, "/home/rstudio/ADM_Final_Assessment/silva_nr99_v138.2_toSpecies_trainset.fa.gz?download=1", multithread=TRUE)
+taxa <- assignTaxonomy(seqtab.nochim, "/home/rstudio/ADM_Final_Assessment/silva_nr99_v138_wSpecies_train_set.fa.gz?download=1", multithread=TRUE)
 ```
 
 ```{r}
@@ -103,31 +103,98 @@ head(taxa.print)
 
 ```{r}
 library(phyloseq); packageVersion("phyloseq")
-```
-```{r}
 library(Biostrings); packageVersion("Biostrings")
-```
-```{r}
 library(ggplot2); packageVersion("ggplot2")
-```
-```{r}
+library(vegan)
 theme_set(theme_bw())
 ```
+```{r}
+library(tidyverse)
+library(phyloseq)
+set.seed(81)
+```
 
 
 ```{r}
-samples.out<-rownames(seqtab.nochim)
+#Recalibrer asv_ids
+asv_ids <- paste0("ASV", seq_len(nrow(taxa)))
+rownames(taxa) <- asv_ids
 ```
 
 ```{r}
-head(metatable)
+if (length(asv_ids) == nrow(taxa)) {
+  rownames(taxa) <- asv_ids
+} else {
+  stop("Dimension mismatch: Check the lengths of asv_ids and taxa!")
+}
 ```
 
 ```{r}
-metadata<-read.csv(file="Metatable.csv", sep=";")
-all(samples.out %in% metadata$Run)
+# Comparer les ASV entre seqtab.nochim et taxa
+asv_diff <- setdiff(rownames(seqtab.nochim), rownames(taxa))
+print(asv_diff)
 ```
 ```{r}
+# Vérification que seqtab.nochim existe
+head(seqtab.nochim)
 
+# Exportation la table au format CSV
+write.csv(seqtab.nochim, file = "asv_table.csv", quote=FALSE)
+```
+
+```{r}
+# Exportez la table au format CSV
+write.csv(taxa, file = "taxonomy.csv", quote = FALSE)
+```
+
+
+```{r}
+# Table des ASV
+asv_table <- read.csv(file="asv_table.csv", row.names = 1)
+# Table de taxonomie
+taxonomy <- read.csv(file="taxonomy.csv", row.names = 1)
+# Métadonnées
+metadata <- read.csv(file="Metatable.csv",sep=";", row.names = 1)
+
+```
+
+```{r}
+dim(asv_table)
+dim(taxonomy)
+dim(metadata)
+```
+```{r}
+asv_names <- rownames(asv_table)
+taxonomy_names <- rownames(taxonomy)
+asv_diff <- setdiff(asv_names, taxonomy_names)
+taxonomy_diff <- setdiff(taxonomy_names, asv_names)
+
+print(asv_diff)        # ASV présents dans asv_table mais pas dans taxonomy
+print(taxonomy_diff)   # ASV présents dans taxonomy mais pas dans asv_table
+
+```
+
+```{r}
+#Transposition de la table des ASV 
+asv_table <- t(asv_table)
+dim(asv_table)
+
+```
+```{r}
+#Harmonisation du nom des lignes
+rownames(asv_table) <- rownames(taxonomy)
+all(rownames(asv_table) == rownames(taxonomy))
+
+```
+
+```{r}
+otu_table <- otu_table(asv_table, taxa_are_rows = TRUE)
+tax_table <- tax_table(as.matrix(taxonomy))
+sample_data <- sample_data(metadata)
+physeq <- phyloseq(otu_table, tax_table, sample_data)
+physeq
+```
+```{r}
+sample_variables(physeq)
 ```
 
