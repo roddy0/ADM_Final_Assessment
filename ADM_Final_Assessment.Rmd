@@ -40,7 +40,7 @@ names(filtRs) <- sample.names
 
 ```{r}
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(260,245),
-              maxN=0, maxEE=c(3,5), truncQ=2, rm.phix=TRUE,
+              maxN=0, maxEE=c(2 ,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=FALSE)
 head(out)
 ```
@@ -198,4 +198,14 @@ physeq
 sample_variables(physeq)
 ```
 
-test 
+```{r}
+
+```
+
+```{r}
+alpha_diversity <- estimate_richness(physeq, measures = c("Shannon", "Simpson"))
+```
+
+
+
+
