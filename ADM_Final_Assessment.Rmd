@@ -374,19 +374,22 @@ ggplot(physeq_df, aes(x = HOST, y = AbundancePercent, fill = Taxonomy)) +
 
 ###ALPHA DIVERSITY
 ```{r}
-#Plot richness for each replicate
-plot_richness(physeq, x="HOST", measures=c("Chao1", "Shannon"))
-```
-
-```{r}
-plot_richness(physeq, x="HOST", color="HOST",  measures=c("Chao1", "Shannon", "Observed"))
-```
-
-```{r}
 library(phyloseq)
 library(ggplot2)
 library(dplyr)
+```
 
+```{r}
+#Plot richness for each replicate
+plot_richness(physeq, x="HOST", color="HOST",  measures=c("Chao1", "Shannon", "Observed"))+
+    labs(
+    title = "Alpha Diversity per Host (Farm) per Replicates",
+    x = "HOST (Farm)",
+    y = "Diversity Index"
+  )
+```
+
+```{r}
 # Calculate alpha diversity data
 alpha_diversity_data <- estimate_richness(physeq, measures = c("Chao1", "Shannon", "Observed"))
 
@@ -420,27 +423,21 @@ mean_long <- mean_alpha_diversity %>%
 # Plot the data with ggplot2
 ggplot(alpha_long, aes(x = HOST, y = Value)) +
   geom_boxplot(outlier.shape = NA, fill = "lightblue", alpha = 0.7) +  # Boxplot without outliers
-  geom_point(data = mean_long, aes(x = HOST, y = Mean_Value), color = "red", size = 3) +  # Mean points
+  geom_point(data = mean_long, aes(x = HOST, y = Mean_Value), color = "red", size = 2) +  # Mean points
   facet_wrap(~ Measure, scales = "free") +  # Facet by measure (Chao1, Shannon, Observed)
   labs(
-    x = "HOST",
+    x = "HOST (Farm)",
     y = "Alpha Diversity Measure",
-    title = "Alpha Diversity Mean Values"
+    title = "Mean Alpha Diversity per Host (Farm)"
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(angle = 90, hjust = 1)  # Vertical X-axis labels
+    axis.text.x = element_text(angle = 90, hjust = 1)
   )
-
 ```
 
 
-```{r}
-ps.prop <- transform_sample_counts(physeq, function(otu) otu/sum(otu))
-ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
-plot_ordination(ps.prop, ord.nmds.bray, color="HOST", title="Bray NMDS")
-```
-
+#BETA DIVERSITY
 ```{r}
 # Install and load required libraries
 if (!requireNamespace("randomcoloR", quietly = TRUE)) {
@@ -449,18 +446,34 @@ if (!requireNamespace("randomcoloR", quietly = TRUE)) {
 library(phyloseq)
 library(ggplot2)
 library(dplyr)
+library(ggpubr)
+```
 
-# Step 1: Transform phyloseq object to relative abundances
+
+```{r}
+ps.prop <- transform_sample_counts(physeq, function(otu) otu/sum(otu))
+ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
+plot_ordination(ps.prop, ord.nmds.bray, color="HOST")+
+  labs(
+    title = "Bray Curtis NMDS",
+    x = "NMDS1",
+    y = "NMDS2",
+    fill = "Farm (Host)"
+  )
+```
+
+```{r}
+#Transform phyloseq object to relative abundances
 ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
 
-# Step 2: Perform ordination using Bray-Curtis distance
+#Perform ordination using Bray-Curtis distance
 ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
 
-# Step 3: Extract NMDS scores
+#Extract NMDS scores
 nmds_scores <- as.data.frame(scores(ord.nmds.bray, display = "sites"))
 nmds_scores$HOST <- sample_data(ps.prop)$HOST  # Add HOST information
 
-# Step 4: Calculate mean NMDS scores for each HOST group
+#Calculate mean NMDS scores for each HOST
 mean_nmds_scores <- nmds_scores %>%
   group_by(HOST) %>%
   summarize(
@@ -468,36 +481,29 @@ mean_nmds_scores <- nmds_scores %>%
     Mean_NMDS2 = mean(NMDS2, na.rm = TRUE)   # Mean for NMDS dimension 2
   )
 
-# Step 5: Visualize Mean NMDS Scores
+#Visualize Mean NMDS Scores
 ggplot(mean_nmds_scores, aes(x = Mean_NMDS1, y = Mean_NMDS2, label = HOST)) +
   geom_point(size = 4, color = "blue") +
   geom_text(vjust = -0.5, size = 4) +  # Add labels for HOST
   labs(
-    title = "Mean NMDS Scores by Host Group",
-    x = "Mean NMDS Dimension 1",
-    y = "Mean NMDS Dimension 2"
+    title = "Mean NMDS Scores by Host (Farm)",
+    x = "Mean NMDS1",
+    y = "Mean NMDS2"
   ) +
   theme_minimal()
 
 ```
 
 ```{r}
-# Install and load required libraries
-if (!requireNamespace("randomcoloR", quietly = TRUE)) {
-  install.packages("randomcoloR")
-}
-library(phyloseq)
-library(ggplot2)
-
-# Step 1: Transform phyloseq object to relative abundances
+#Transform phyloseq object to relative abundances
 ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
 
-# Step 2: Perform ordination using Bray-Curtis distance
+#Perform ordination using Bray-Curtis distance
 ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
 
-# Step 3: Create NMDS plot and add ellipses for each HOST group
-plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray NMDS") +
-  geom_point(size = 3) +  # Adjust point size for better visibility
+#Create NMDS plot and add ellipses for each HOST group
+plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray Curtis NMDS Replicate grouping") +
+  geom_point(size = 3) +  # Adjust point size 
   stat_ellipse(aes(color = HOST), type = "t", size = 1) +  # Add ellipses by HOST
   theme_minimal() +
   theme(
@@ -510,34 +516,26 @@ plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray NMDS") +
 ```
 
 ```{r}
-# Install and load required libraries
-if (!requireNamespace("randomcoloR", quietly = TRUE)) {
-  install.packages("randomcoloR")
-}
-library(phyloseq)
-library(ggplot2)
-library(dplyr)
-
-# Step 1: Transform phyloseq object to relative abundances
+# Transform phyloseq object to relative abundances
 ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
 
-# Step 2: Perform ordination using Bray-Curtis distance
+# Perform ordination using Bray-Curtis distance
 ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
 
-# Step 3: Extract NMDS coordinates
+# Extract NMDS coordinates
 nmds_scores <- as.data.frame(scores(ord.nmds.bray, display = "sites"))
-nmds_scores$HOST <- sample_data(ps.prop)$HOST  # Add HOST information
+nmds_scores$HOST <- sample_data(ps.prop)$HOST
 
-# Step 4: Apply k-means clustering to divide samples into two groups
+# Apply k-means clustering to divide samples into two groups
 set.seed(123)  # Set seed for reproducibility
 kmeans_result <- kmeans(nmds_scores[, c("NMDS1", "NMDS2")], centers = 2)  # Two clusters
 nmds_scores$Cluster <- as.factor(kmeans_result$cluster)  # Add cluster assignments
 
-# Step 5: Create NMDS plot with sample labels and two clusters
+# Create NMDS plot with sample labels from the 'HOST' column and two clusters
 ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
   geom_point(size = 3) +  # Plot points
   stat_ellipse(aes(group = Cluster), type = "t", size = 1) +  # Add ellipses for each cluster
-  geom_text(aes(label = rownames(nmds_scores)), vjust = -0.5, size = 3) +  # Add sample labels
+  geom_text(aes(label = HOST), vjust = -0.5, size = 3) +  # Add sample labels from the 'HOST' column
   labs(
     title = "NMDS Plot with Two Clusters and Sample Labels",
     x = "NMDS Dimension 1",
@@ -552,62 +550,14 @@ ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
     axis.text = element_text(size = 10)
   )
 
-
-```
-
-```{r}
-# Install and load required libraries
-if (!requireNamespace("randomcoloR", quietly = TRUE)) {
-  install.packages("randomcoloR")
-}
-library(phyloseq)
-library(ggplot2)
-library(dplyr)
-library(ggpubr)  # For combining plots and tables
-
-# Step 1: Transform phyloseq object to relative abundances
-ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
-
-# Step 2: Perform ordination using Bray-Curtis distance
-ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
-
-# Step 3: Extract NMDS coordinates
-nmds_scores <- as.data.frame(scores(ord.nmds.bray, display = "sites"))
-nmds_scores$HOST <- sample_data(ps.prop)$HOST  # Add HOST information
-
-# Step 4: Apply k-means clustering to divide samples into two groups
-set.seed(123)  # Set seed for reproducibility
-kmeans_result <- kmeans(nmds_scores[, c("NMDS1", "NMDS2")], centers = 2)  # Two clusters
-nmds_scores$Cluster <- as.factor(kmeans_result$cluster)  # Add cluster assignments
-
-# Step 5: Create NMDS plot with two clusters and ellipses
-nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
-  geom_point(size = 3) +  # Plot points
-  stat_ellipse(aes(group = Cluster), type = "t", size = 1) +  # Add ellipses for each cluster
-  labs(
-    title = "Bray NMDS with Two Clusters",
-    x = "NMDS1",
-    y = "NMDS2",
-    color = "Cluster"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "right",
-    axis.title = element_text(size = 12),
-    axis.text = element_text(size = 10),
-    plot.title = element_text(size = 14, face = "bold")
-  )
-
-# Step 6: Create a table of samples for each cluster
+#Create a table of samples for each cluster
 cluster_table <- nmds_scores %>%
   select(HOST, Cluster) %>%
   arrange(Cluster) %>%
   group_by(Cluster) %>%
-  summarise(Samples = paste(HOST, collapse = ", "))  # Combine sample names per cluster
-
+  summarise(Samples = paste(HOST, collapse = ", "))
 # Convert table to a ggplot-friendly format
 cluster_table_plot <- ggtexttable(cluster_table, rows = NULL, theme = ttheme("mOrange"))
-
 # Combine NMDS plot and table with better layout
 combined_plot <- ggarrange(
   cluster_table_plot,  # Table of samples in clusters
@@ -618,6 +568,4 @@ combined_plot <- ggarrange(
 
 # Display the adjusted plot
 print(combined_plot)
-
 ```
-
