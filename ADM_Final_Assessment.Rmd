@@ -135,9 +135,6 @@ asv_diff <- setdiff(rownames(seqtab.nochim), rownames(taxa))
 print(asv_diff)
 ```
 ```{r}
-# Vérification que seqtab.nochim existe
-head(seqtab.nochim)
-
 # Exportation la table au format CSV
 write.csv(seqtab.nochim, file = "asv_table.csv", quote=FALSE)
 ```
@@ -199,13 +196,108 @@ sample_variables(physeq)
 ```
 
 ```{r}
-
+#Plot richness for each replicate
+plot_richness(physeq, x="HOST", measures=c("Chao1", "Shannon"))
 ```
 
 ```{r}
-alpha_diversity <- estimate_richness(physeq, measures = c("Shannon", "Simpson"))
+plot_richness(physeq, x="HOST", color="HOST",  measures=c("Chao1", "Shannon", "Observed"))
 ```
 
+```{r}
+library(phyloseq)
+library(ggplot2)
+library(dplyr)
+
+# Calculate alpha diversity data
+alpha_diversity_data <- estimate_richness(physeq, measures = c("Chao1", "Shannon", "Observed"))
+
+# Add HOST information to the data
+alpha_diversity_data <- alpha_diversity_data %>%
+  mutate(HOST = sample_data(physeq)$HOST)
+
+# Calculate mean values for each HOST
+mean_alpha_diversity <- alpha_diversity_data %>%
+  group_by(HOST) %>%
+  summarize(
+    Mean_Chao1 = mean(Chao1, na.rm = TRUE),
+    Mean_Shannon = mean(Shannon, na.rm = TRUE),
+    Mean_Observed = mean(Observed, na.rm = TRUE)
+  )
+
+# Reshape data for plotting
+alpha_long <- alpha_diversity_data %>%
+  pivot_longer(cols = c("Chao1", "Shannon", "Observed"), names_to = "Measure", values_to = "Value")
+
+mean_long <- mean_alpha_diversity %>%
+  pivot_longer(cols = c("Mean_Chao1", "Mean_Shannon", "Mean_Observed"),
+               names_to = "Measure",
+               values_to = "Mean_Value") %>%
+  mutate(Measure = case_when(
+    Measure == "Mean_Chao1" ~ "Chao1",
+    Measure == "Mean_Shannon" ~ "Shannon",
+    Measure == "Mean_Observed" ~ "Observed"
+  ))
+
+# Plot the data with ggplot2
+ggplot(alpha_long, aes(x = HOST, y = Value)) +
+  geom_boxplot(outlier.shape = NA, fill = "lightblue", alpha = 0.7) +  # Boxplot without outliers
+  geom_point(data = mean_long, aes(x = HOST, y = Mean_Value), color = "red", size = 3) +  # Mean points
+  facet_wrap(~ Measure, scales = "free") +  # Facet by measure (Chao1, Shannon, Observed)
+  labs(
+    x = "HOST",
+    y = "Alpha Diversity Measure",
+    title = "Alpha Diversity Mean Values"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1)  # Vertical X-axis labels
+  )
+
+```
+
+
+```{r}
+# Install and load required libraries
+if (!requireNamespace("randomcoloR", quietly = TRUE)) {
+  install.packages("randomcoloR")
+}
+library(phyloseq)
+library(ggplot2)
+library(dplyr)
+library(randomcoloR)
+
+# Convert phyloseq object to a data frame for manual customization
+physeq_df <- psmelt(physeq)
+
+# Combine taxonomic levels to include Species and Genus
+physeq_df <- physeq_df %>%
+  mutate(
+    Taxonomy = paste(Genus, Species, sep = " "),
+    Taxonomy = ifelse(is.na(Species) | Species == "", Genus, Taxonomy), # Handle missing species
+    Taxonomy = ifelse(is.na(Genus) | Genus == "", Family, Taxonomy)     # Handle missing genus
+  )
+
+# Generate distinct colors for each Family
+family_colors <- distinctColorPalette(length(unique(physeq_df$Species)))
+
+# Create the bar plot
+ggplot(physeq_df, aes(x = HOST, y = Abundance, fill = Species)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = family_colors) +  # Apply the generated colors
+  labs(
+    title = "Bar Plot of Taxonomic Abundance by Host",
+    x = "HOST",
+    y = "Relative Abundance",
+    fill = "Genus"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1)  # Vertical X-axis labels
+  )
+
+ 
+```
 
 
 
