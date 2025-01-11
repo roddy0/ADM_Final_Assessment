@@ -102,21 +102,25 @@ head(taxa.print)
 ```
 
 ```{r}
+# Install and load required libraries
 library(phyloseq); packageVersion("phyloseq")
 library(Biostrings); packageVersion("Biostrings")
 library(ggplot2); packageVersion("ggplot2")
+library(dplyr)
+library(ggpubr)
+library(randomcoloR)
 library(vegan)
-theme_set(theme_bw())
-```
-```{r}
 library(tidyverse)
-library(phyloseq)
 set.seed(81)
+theme_set(theme_bw())
+
+if (!requireNamespace("randomcoloR", quietly = TRUE)) {
+  install.packages("randomcoloR")
+}
 ```
 
-
 ```{r}
-#Recalibrer asv_ids
+#Adjust asv_ids
 asv_ids <- paste0("ASV", seq_len(nrow(taxa)))
 rownames(taxa) <- asv_ids
 ```
@@ -130,29 +134,27 @@ if (length(asv_ids) == nrow(taxa)) {
 ```
 
 ```{r}
-# Comparer les ASV entre seqtab.nochim et taxa
 asv_diff <- setdiff(rownames(seqtab.nochim), rownames(taxa))
 print(asv_diff)
 ```
 ```{r}
-# Exportation la table au format CSV
+#Exportation ASV table
 write.csv(seqtab.nochim, file = "asv_table.csv", quote=FALSE)
 ```
 
 ```{r}
-# Exportez la table au format CSV
+#Export Taxa table
 write.csv(taxa, file = "taxonomy.csv", quote = FALSE)
 ```
 
 
 ```{r}
-# Table des ASV
+#ASV Table
 asv_table <- read.csv(file="asv_table.csv", row.names = 1)
-# Table de taxonomie
+#Taxa Table
 taxonomy <- read.csv(file="taxonomy.csv", row.names = 1)
-# Métadonnées
+# Metadata
 metadata <- read.csv(file="Metatable.csv",sep=";", row.names = 1)
-
 ```
 
 ```{r}
@@ -165,23 +167,19 @@ asv_names <- rownames(asv_table)
 taxonomy_names <- rownames(taxonomy)
 asv_diff <- setdiff(asv_names, taxonomy_names)
 taxonomy_diff <- setdiff(taxonomy_names, asv_names)
-
-print(asv_diff)        # ASV présents dans asv_table mais pas dans taxonomy
-print(taxonomy_diff)   # ASV présents dans taxonomy mais pas dans asv_table
+print(asv_diff)        
+print(taxonomy_diff)   
 
 ```
 
 ```{r}
-#Transposition de la table des ASV 
+#Transposition of ASV table 
 asv_table <- t(asv_table)
 dim(asv_table)
-
 ```
 ```{r}
-#Harmonisation du nom des lignes
 rownames(asv_table) <- rownames(taxonomy)
 all(rownames(asv_table) == rownames(taxonomy))
-
 ```
 
 ```{r}
@@ -194,18 +192,9 @@ physeq
 ```{r}
 sample_variables(physeq)
 ```
-##RELATIVE ABUNDANCE
-```{r}
-# Install and load required libraries
-if (!requireNamespace("randomcoloR", quietly = TRUE)) {
-  install.packages("randomcoloR")
-}
-library(phyloseq)
-library(ggplot2)
-library(dplyr)
-library(randomcoloR)
-```
 
+
+##RELATIVE ABUNDANCE
 ```{r}
 # Convert phyloseq object to a data frame for manual customization
 physeq_df <- psmelt(physeq)
@@ -284,6 +273,7 @@ ggplot(physeq_df, aes(x = HOST, y = Abundance, fill = Taxonomy)) +
     legend.text = element_text(size = 10)
   )
 ```
+
 ```{r}
 # Convert phyloseq object to a data frame for manual customization
 physeq_df <- psmelt(physeq)
@@ -326,7 +316,6 @@ ggplot(physeq_df, aes(x = Sample_Name, y = AbundancePercent, fill = Taxonomy)) +
     legend.text = element_text(size = 10)
   )
 ```
-
 
 ```{r}
 # Convert phyloseq object to a data frame for manual customization
@@ -373,12 +362,6 @@ ggplot(physeq_df, aes(x = HOST, y = AbundancePercent, fill = Taxonomy)) +
 
 
 ###ALPHA DIVERSITY
-```{r}
-library(phyloseq)
-library(ggplot2)
-library(dplyr)
-```
-
 ```{r}
 #Plot richness for each replicate
 plot_richness(physeq, x="HOST", color="HOST",  measures=c("Chao1", "Shannon", "Observed"))+
@@ -439,18 +422,6 @@ ggplot(alpha_long, aes(x = HOST, y = Value)) +
 
 #BETA DIVERSITY
 ```{r}
-# Install and load required libraries
-if (!requireNamespace("randomcoloR", quietly = TRUE)) {
-  install.packages("randomcoloR")
-}
-library(phyloseq)
-library(ggplot2)
-library(dplyr)
-library(ggpubr)
-```
-
-
-```{r}
 ps.prop <- transform_sample_counts(physeq, function(otu) otu/sum(otu))
 ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 plot_ordination(ps.prop, ord.nmds.bray, color="HOST")+
@@ -491,7 +462,6 @@ ggplot(mean_nmds_scores, aes(x = Mean_NMDS1, y = Mean_NMDS2, label = HOST)) +
     y = "Mean NMDS2"
   ) +
   theme_minimal()
-
 ```
 
 ```{r}
@@ -512,7 +482,6 @@ plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray Curtis NMD
     axis.title = element_text(size = 12),
     axis.text = element_text(size = 10)
   )
-
 ```
 
 ```{r}
