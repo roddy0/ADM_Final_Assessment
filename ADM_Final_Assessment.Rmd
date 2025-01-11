@@ -194,7 +194,185 @@ physeq
 ```{r}
 sample_variables(physeq)
 ```
+##RELATIVE ABUNDANCE
+```{r}
+# Install and load required libraries
+if (!requireNamespace("randomcoloR", quietly = TRUE)) {
+  install.packages("randomcoloR")
+}
+library(phyloseq)
+library(ggplot2)
+library(dplyr)
+library(randomcoloR)
+```
 
+```{r}
+# Convert phyloseq object to a data frame for manual customization
+physeq_df <- psmelt(physeq)
+
+# Combine taxonomic levels to include Species and Genus
+physeq_df <- physeq_df %>%
+  mutate(
+    Taxonomy = paste(Genus, Species, sep = " "),
+    Taxonomy = ifelse(is.na(Species) | Species == "", Genus, Taxonomy), # Handle missing species
+    Taxonomy = ifelse(is.na(Genus) | Genus == "", Family, Taxonomy)     # Handle missing genus
+  ) %>%
+  # Remove rows where Taxonomy is NA
+  filter(!is.na(Taxonomy)) %>%
+  # Calculate relative abundance (percentage) per HOST
+  group_by(HOST) %>%
+  mutate(
+    TotalAbundance = sum(Abundance), # Total abundance for each HOST
+    AbundancePercent = (Abundance / TotalAbundance) * 100  # Convert to percentage
+  ) %>%
+  ungroup() # Remove grouping for subsequent operations
+
+# Generate distinct colors for each combined Taxonomy (Species or Genus)
+taxonomy_colors <- distinctColorPalette(length(unique(physeq_df$Taxonomy)))
+
+# Create the bar plot
+ggplot(physeq_df, aes(x = Sample_Name, y = AbundancePercent, fill = Taxonomy)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = taxonomy_colors) +  # Apply the generated colors
+  labs(
+    title = "Species Relative Abundance per Host (Farm) per Replicate",
+    x = "Samples Replicate",
+    y = "Percentage Relative Abundance (%)",
+    fill = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+```
+
+```{r}
+# Convert phyloseq object to a data frame for manual customization
+physeq_df <- psmelt(physeq)
+
+# Combine taxonomic levels to include Species and Genus
+physeq_df <- physeq_df %>%
+  mutate(
+    Taxonomy = paste(Genus, Species, sep = " "),
+    Taxonomy = ifelse(is.na(Species) | Species == "", Genus, Taxonomy), # Handle missing species
+    Taxonomy = ifelse(is.na(Genus) | Genus == "", Family, Taxonomy)     # Handle missing genus
+  ) %>%
+  # Remove rows where Taxonomy is NA
+  filter(!is.na(Taxonomy))
+
+# Generate distinct colors for each combined Taxonomy (Species or Genus)
+taxonomy_colors <- distinctColorPalette(length(unique(physeq_df$Taxonomy)))
+
+# Create the bar plot
+ggplot(physeq_df, aes(x = HOST, y = Abundance, fill = Taxonomy)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = taxonomy_colors) +  # Apply the generated colors
+  labs(
+    title = "Species Mean Relative Abundance per Host (Farm)",
+    x = "HOST (Farm)",
+    y = "Relative Abundance",
+    fill = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 10),  # Vertical X-axis labels with size adjustment
+    axis.text.y = element_text(size = 10),  # Y-axis labels size
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+```
+```{r}
+# Convert phyloseq object to a data frame for manual customization
+physeq_df <- psmelt(physeq)
+
+# Combine taxonomic levels to include Species and Genus
+physeq_df <- physeq_df %>%
+  mutate(
+    Taxonomy = paste(Genus, Species, sep = " "),
+    Taxonomy = ifelse(is.na(Species) | Species == "", Genus, Taxonomy), # Handle missing species
+    Taxonomy = ifelse(is.na(Genus) | Genus == "", Family, Taxonomy)     # Handle missing genus
+  ) %>%
+  # Remove rows where Taxonomy is NA
+  filter(!is.na(Taxonomy)) %>%
+  # Calculate relative abundance (percentage) per HOST
+  group_by(Sample_Name) %>%
+  mutate(
+    TotalAbundance = sum(Abundance), # Total abundance for each HOST
+    AbundancePercent = (Abundance / TotalAbundance) * 100  # Convert to percentage
+  ) %>%
+  ungroup() # Remove grouping for subsequent operations
+
+# Generate distinct colors for each combined Taxonomy (Species or Genus)
+taxonomy_colors <- distinctColorPalette(length(unique(physeq_df$Taxonomy)))
+
+# Create the bar plot
+ggplot(physeq_df, aes(x = Sample_Name, y = AbundancePercent, fill = Taxonomy)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = taxonomy_colors) +  # Apply the generated colors
+  labs(
+    title = "Species Percentage Relative Abundance per Host (Farm) per Replicate",
+    x = "Sample Replicates",
+    y = "Percentage Relative Abundance (%)",
+    fill = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+```
+
+
+```{r}
+# Convert phyloseq object to a data frame for manual customization
+physeq_df <- psmelt(physeq)
+
+# Combine taxonomic levels to include Species and Genus
+physeq_df <- physeq_df %>%
+  mutate(
+    Taxonomy = paste(Genus, Species, sep = " "),
+    Taxonomy = ifelse(is.na(Species) | Species == "", Genus, Taxonomy), # Handle missing species
+    Taxonomy = ifelse(is.na(Genus) | Genus == "", Family, Taxonomy)     # Handle missing genus
+  ) %>%
+  # Remove rows where Taxonomy is NA
+  filter(!is.na(Taxonomy)) %>%
+  # Calculate relative abundance (percentage) per HOST
+  group_by(HOST) %>%
+  mutate(
+    TotalAbundance = sum(Abundance), # Total abundance for each HOST
+    AbundancePercent = (Abundance / TotalAbundance) * 100  # Convert to percentage
+  ) %>%
+  ungroup() # Remove grouping for subsequent operations
+
+# Generate distinct colors for each combined Taxonomy (Species or Genus)
+taxonomy_colors <- distinctColorPalette(length(unique(physeq_df$Taxonomy)))
+
+# Create the bar plot
+ggplot(physeq_df, aes(x = HOST, y = AbundancePercent, fill = Taxonomy)) +
+  geom_bar(stat = "identity", position = "stack") +
+  scale_fill_manual(values = taxonomy_colors) +  # Apply the generated colors
+  labs(
+    title = "Species Percentage Relative Abundance by Host (Farm)",
+    x = "HOST (Farm)",
+    y = "Percentage Relative Abundance (%)",
+    fill = "Species"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+```
+
+
+###ALPHA DIVERSITY
 ```{r}
 #Plot richness for each replicate
 plot_richness(physeq, x="HOST", measures=c("Chao1", "Shannon"))
@@ -258,6 +436,12 @@ ggplot(alpha_long, aes(x = HOST, y = Value)) +
 
 
 ```{r}
+ps.prop <- transform_sample_counts(physeq, function(otu) otu/sum(otu))
+ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
+plot_ordination(ps.prop, ord.nmds.bray, color="HOST", title="Bray NMDS")
+```
+
+```{r}
 # Install and load required libraries
 if (!requireNamespace("randomcoloR", quietly = TRUE)) {
   install.packages("randomcoloR")
@@ -265,39 +449,175 @@ if (!requireNamespace("randomcoloR", quietly = TRUE)) {
 library(phyloseq)
 library(ggplot2)
 library(dplyr)
-library(randomcoloR)
 
-# Convert phyloseq object to a data frame for manual customization
-physeq_df <- psmelt(physeq)
+# Step 1: Transform phyloseq object to relative abundances
+ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
 
-# Combine taxonomic levels to include Species and Genus
-physeq_df <- physeq_df %>%
-  mutate(
-    Taxonomy = paste(Genus, Species, sep = " "),
-    Taxonomy = ifelse(is.na(Species) | Species == "", Genus, Taxonomy), # Handle missing species
-    Taxonomy = ifelse(is.na(Genus) | Genus == "", Family, Taxonomy)     # Handle missing genus
+# Step 2: Perform ordination using Bray-Curtis distance
+ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
+
+# Step 3: Extract NMDS scores
+nmds_scores <- as.data.frame(scores(ord.nmds.bray, display = "sites"))
+nmds_scores$HOST <- sample_data(ps.prop)$HOST  # Add HOST information
+
+# Step 4: Calculate mean NMDS scores for each HOST group
+mean_nmds_scores <- nmds_scores %>%
+  group_by(HOST) %>%
+  summarize(
+    Mean_NMDS1 = mean(NMDS1, na.rm = TRUE),  # Mean for NMDS dimension 1
+    Mean_NMDS2 = mean(NMDS2, na.rm = TRUE)   # Mean for NMDS dimension 2
   )
 
-# Generate distinct colors for each Family
-family_colors <- distinctColorPalette(length(unique(physeq_df$Species)))
-
-# Create the bar plot
-ggplot(physeq_df, aes(x = HOST, y = Abundance, fill = Species)) +
-  geom_bar(stat = "identity", position = "stack") +
-  scale_fill_manual(values = family_colors) +  # Apply the generated colors
+# Step 5: Visualize Mean NMDS Scores
+ggplot(mean_nmds_scores, aes(x = Mean_NMDS1, y = Mean_NMDS2, label = HOST)) +
+  geom_point(size = 4, color = "blue") +
+  geom_text(vjust = -0.5, size = 4) +  # Add labels for HOST
   labs(
-    title = "Bar Plot of Taxonomic Abundance by Host",
-    x = "HOST",
-    y = "Relative Abundance",
-    fill = "Genus"
+    title = "Mean NMDS Scores by Host Group",
+    x = "Mean NMDS Dimension 1",
+    y = "Mean NMDS Dimension 2"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+# Install and load required libraries
+if (!requireNamespace("randomcoloR", quietly = TRUE)) {
+  install.packages("randomcoloR")
+}
+library(phyloseq)
+library(ggplot2)
+
+# Step 1: Transform phyloseq object to relative abundances
+ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
+
+# Step 2: Perform ordination using Bray-Curtis distance
+ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
+
+# Step 3: Create NMDS plot and add ellipses for each HOST group
+plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray NMDS") +
+  geom_point(size = 3) +  # Adjust point size for better visibility
+  stat_ellipse(aes(color = HOST), type = "t", size = 1) +  # Add ellipses by HOST
+  theme_minimal() +
+  theme(
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+```
+
+```{r}
+# Install and load required libraries
+if (!requireNamespace("randomcoloR", quietly = TRUE)) {
+  install.packages("randomcoloR")
+}
+library(phyloseq)
+library(ggplot2)
+library(dplyr)
+
+# Step 1: Transform phyloseq object to relative abundances
+ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
+
+# Step 2: Perform ordination using Bray-Curtis distance
+ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
+
+# Step 3: Extract NMDS coordinates
+nmds_scores <- as.data.frame(scores(ord.nmds.bray, display = "sites"))
+nmds_scores$HOST <- sample_data(ps.prop)$HOST  # Add HOST information
+
+# Step 4: Apply k-means clustering to divide samples into two groups
+set.seed(123)  # Set seed for reproducibility
+kmeans_result <- kmeans(nmds_scores[, c("NMDS1", "NMDS2")], centers = 2)  # Two clusters
+nmds_scores$Cluster <- as.factor(kmeans_result$cluster)  # Add cluster assignments
+
+# Step 5: Create NMDS plot with sample labels and two clusters
+ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
+  geom_point(size = 3) +  # Plot points
+  stat_ellipse(aes(group = Cluster), type = "t", size = 1) +  # Add ellipses for each cluster
+  geom_text(aes(label = rownames(nmds_scores)), vjust = -0.5, size = 3) +  # Add sample labels
+  labs(
+    title = "NMDS Plot with Two Clusters and Sample Labels",
+    x = "NMDS Dimension 1",
+    y = "NMDS Dimension 2",
+    color = "Cluster"
   ) +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(angle = 90, hjust = 1)  # Vertical X-axis labels
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
   )
 
- 
+
 ```
 
+```{r}
+# Install and load required libraries
+if (!requireNamespace("randomcoloR", quietly = TRUE)) {
+  install.packages("randomcoloR")
+}
+library(phyloseq)
+library(ggplot2)
+library(dplyr)
+library(ggpubr)  # For combining plots and tables
 
+# Step 1: Transform phyloseq object to relative abundances
+ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
+
+# Step 2: Perform ordination using Bray-Curtis distance
+ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
+
+# Step 3: Extract NMDS coordinates
+nmds_scores <- as.data.frame(scores(ord.nmds.bray, display = "sites"))
+nmds_scores$HOST <- sample_data(ps.prop)$HOST  # Add HOST information
+
+# Step 4: Apply k-means clustering to divide samples into two groups
+set.seed(123)  # Set seed for reproducibility
+kmeans_result <- kmeans(nmds_scores[, c("NMDS1", "NMDS2")], centers = 2)  # Two clusters
+nmds_scores$Cluster <- as.factor(kmeans_result$cluster)  # Add cluster assignments
+
+# Step 5: Create NMDS plot with two clusters and ellipses
+nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
+  geom_point(size = 3) +  # Plot points
+  stat_ellipse(aes(group = Cluster), type = "t", size = 1) +  # Add ellipses for each cluster
+  labs(
+    title = "Bray NMDS with Two Clusters",
+    x = "NMDS1",
+    y = "NMDS2",
+    color = "Cluster"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    plot.title = element_text(size = 14, face = "bold")
+  )
+
+# Step 6: Create a table of samples for each cluster
+cluster_table <- nmds_scores %>%
+  select(HOST, Cluster) %>%
+  arrange(Cluster) %>%
+  group_by(Cluster) %>%
+  summarise(Samples = paste(HOST, collapse = ", "))  # Combine sample names per cluster
+
+# Convert table to a ggplot-friendly format
+cluster_table_plot <- ggtexttable(cluster_table, rows = NULL, theme = ttheme("mOrange"))
+
+# Combine NMDS plot and table with better layout
+combined_plot <- ggarrange(
+  cluster_table_plot,  # Table of samples in clusters
+  nmds_plot,  # NMDS plot
+  ncol = 1,  # Arrange plots in a single column
+  heights = c(1, 3)  # Adjust relative heights: more space for the NMDS plot
+)
+
+# Display the adjusted plot
+print(combined_plot)
+
+```
 
