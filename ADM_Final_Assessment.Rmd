@@ -3,7 +3,7 @@ title: "R Notebook"
 output: github_document
 ---
 
-Nom: RAMBORO Antoine Roddy & Emmanuel Toky
+Nom: RAMBORO Antoine Roddy & RABEMANANA RAHAGA Toky Emmanuel
 
 ```{r}
 library(dada2); packageVersion("dada2")
@@ -29,8 +29,8 @@ plotQualityProfile(fnFs[1:2])
 ```{r}
 plotQualityProfile(fnRs[1:2])
 ```
-#For the forward sequences we will trim the 20 last nucleotides (truncate the forward reads at position 280)
-#For the Reverse sequences we will trim truncate at position 200
+#For the forward sequences we will trim the 40 last nucleotides (truncate the forward reads at position 260)
+#For the Reverse sequences we will trim truncate at position 245
 
 ```{r}
 filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
