@@ -169,7 +169,6 @@ asv_diff <- setdiff(asv_names, taxonomy_names)
 taxonomy_diff <- setdiff(taxonomy_names, asv_names)
 print(asv_diff)        
 print(taxonomy_diff)   
-
 ```
 
 ```{r}
@@ -433,6 +432,8 @@ plot_ordination(ps.prop, ord.nmds.bray, color="HOST")+
   )
 ```
 
+
+
 ```{r}
 #Transform phyloseq object to relative abundances
 ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
@@ -485,23 +486,8 @@ plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray Curtis NMD
 ```
 
 ```{r}
-# Transform phyloseq object to relative abundances
-ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
-
-# Perform ordination using Bray-Curtis distance
-ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
-
-# Extract NMDS coordinates
-nmds_scores <- as.data.frame(scores(ord.nmds.bray, display = "sites"))
-nmds_scores$HOST <- sample_data(ps.prop)$HOST
-
-# Apply k-means clustering to divide samples into two groups
-set.seed(123)  # Set seed for reproducibility
-kmeans_result <- kmeans(nmds_scores[, c("NMDS1", "NMDS2")], centers = 2)  # Two clusters
-nmds_scores$Cluster <- as.factor(kmeans_result$cluster)  # Add cluster assignments
-
 # Create NMDS plot with sample labels from the 'HOST' column and two clusters
-ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
+nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
   geom_point(size = 3) +  # Plot points
   stat_ellipse(aes(group = Cluster), type = "t", size = 1) +  # Add ellipses for each cluster
   geom_text(aes(label = HOST), vjust = -0.5, size = 3) +  # Add sample labels from the 'HOST' column
@@ -519,14 +505,16 @@ ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
     axis.text = element_text(size = 10)
   )
 
-#Create a table of samples for each cluster
+# Create a table of samples for each cluster
 cluster_table <- nmds_scores %>%
   select(HOST, Cluster) %>%
   arrange(Cluster) %>%
   group_by(Cluster) %>%
   summarise(Samples = paste(HOST, collapse = ", "))
+
 # Convert table to a ggplot-friendly format
 cluster_table_plot <- ggtexttable(cluster_table, rows = NULL, theme = ttheme("mOrange"))
+
 # Combine NMDS plot and table with better layout
 combined_plot <- ggarrange(
   cluster_table_plot,  # Table of samples in clusters
@@ -537,4 +525,35 @@ combined_plot <- ggarrange(
 
 # Display the adjusted plot
 print(combined_plot)
+
 ```
+
+```{r}
+# Transform phyloseq object to relative abundances
+ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
+
+# Perform ordination using Bray-Curtis distance
+ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
+
+# Ensure geo_loc_name is a factor
+sample_data(ps.prop)$geo_loc_name <- as.factor(sample_data(ps.prop)$geo_loc_name)
+
+# Create NMDS plot with shapes for each HOST group and labels for geo_loc_name on the right
+plot_ordination(ps.prop, ord.nmds.bray, color = "geo_loc_name", title = "Bray Curtis NMDS By Farm Location") +
+  geom_point(aes(shape = HOST), size = 3) +  # Different shapes for each 'HOST'
+  stat_ellipse(aes(color = geo_loc_name), type = "t", size = 1) +  # Add ellipses by geo_loc_name
+  geom_text(aes(label = geo_loc_name), 
+            position = position_jitter(width = 0.2, height = 0), 
+            hjust = -0.1, size = 1) +  # Labels for geo_loc_name on the right
+  scale_shape_manual(values = 1:25) +  # Manually specify shapes for HOST, adjust range as needed
+  scale_color_viridis_d() +  # Use a perceptually uniform color scale for geo_loc_name
+  theme_minimal() +
+  theme(
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10)
+  )
+
+```
+
