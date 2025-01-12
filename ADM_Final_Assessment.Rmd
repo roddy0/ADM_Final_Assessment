@@ -525,7 +525,6 @@ combined_plot <- ggarrange(
 
 # Display the adjusted plot
 print(combined_plot)
-
 ```
 
 ```{r}
