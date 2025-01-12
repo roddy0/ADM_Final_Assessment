@@ -3,6 +3,7 @@ title: "R Notebook"
 output: github_document
 ---
 
+Nom: RAMBORO Antoine Roddy & Emmanuel Toky
 
 ```{r}
 library(dada2); packageVersion("dada2")
@@ -473,9 +474,9 @@ ps.prop <- transform_sample_counts(physeq, function(otu) otu / sum(otu))
 ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
 
 #Create NMDS plot and add ellipses for each HOST group
-plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray Curtis NMDS Replicate grouping") +
+plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray Curtis NMDS based on Replicates") +
   geom_point(size = 3) +  # Adjust point size 
-  stat_ellipse(aes(color = HOST), type = "t", size = 1) +  # Add ellipses by HOST
+  stat_ellipse(aes(color = HOST), type = "t", size = 0.5) +  # Add ellipses by HOST
   theme_minimal() +
   theme(
     legend.title = element_text(size = 12),
@@ -486,17 +487,18 @@ plot_ordination(ps.prop, ord.nmds.bray, color = "HOST", title = "Bray Curtis NMD
 ```
 
 ```{r}
-# Create NMDS plot with sample labels from the 'HOST' column and two clusters
-nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster)) +
-  geom_point(size = 3) +  # Plot points
-  stat_ellipse(aes(group = Cluster), type = "t", size = 1) +  # Add ellipses for each cluster
-  geom_text(aes(label = HOST), vjust = -0.5, size = 3) +  # Add sample labels from the 'HOST' column
+# Create NMDS plot with shapes for each 'HOST' and clusters
+nmds_plot <- ggplot(nmds_scores, aes(x = NMDS1, y = NMDS2, color = Cluster, shape = HOST)) +
+  geom_point(size = 3) +  # Plot points with different shapes for each 'HOST'
+  stat_ellipse(aes(group = Cluster), type = "t", size = 0.5) +  # Add ellipses for each cluster
   labs(
-    title = "NMDS Plot with Two Clusters and Sample Labels",
+    title = "NMDS Plot with Two Clusters",
     x = "NMDS Dimension 1",
     y = "NMDS Dimension 2",
-    color = "Cluster"
+    color = "Cluster",
+    shape = "HOST"  # Label for shape legend
   ) +
+  scale_shape_manual(values = 1:25) +  # Assign different shapes for each unique 'HOST'
   theme_minimal() +
   theme(
     legend.title = element_text(size = 12),
@@ -537,14 +539,11 @@ ord.nmds.bray <- ordinate(ps.prop, method = "NMDS", distance = "bray")
 # Ensure geo_loc_name is a factor
 sample_data(ps.prop)$geo_loc_name <- as.factor(sample_data(ps.prop)$geo_loc_name)
 
-# Create NMDS plot with shapes for each HOST group and labels for geo_loc_name on the right
+# Create NMDS plot with only shapes for each 'HOST' group (no labels for geo_loc_name or HOST)
 plot_ordination(ps.prop, ord.nmds.bray, color = "geo_loc_name", title = "Bray Curtis NMDS By Farm Location") +
   geom_point(aes(shape = HOST), size = 3) +  # Different shapes for each 'HOST'
-  stat_ellipse(aes(color = geo_loc_name), type = "t", size = 1) +  # Add ellipses by geo_loc_name
-  geom_text(aes(label = geo_loc_name), 
-            position = position_jitter(width = 0.2, height = 0), 
-            hjust = -0.1, size = 1) +  # Labels for geo_loc_name on the right
-  scale_shape_manual(values = 1:25) +  # Manually specify shapes for HOST, adjust range as needed
+  stat_ellipse(aes(color = geo_loc_name), type = "t", size = 0.5) +  # Add ellipses by geo_loc_name
+  scale_shape_manual(values = 1:25) +  
   scale_color_viridis_d() +  # Use a perceptually uniform color scale for geo_loc_name
   theme_minimal() +
   theme(
@@ -553,6 +552,5 @@ plot_ordination(ps.prop, ord.nmds.bray, color = "geo_loc_name", title = "Bray Cu
     axis.title = element_text(size = 12),
     axis.text = element_text(size = 10)
   )
-
 ```
 
